@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <!-- 指定应用名称 -->
+    <dubbo:application name="health_job" />
+    <!--指定服务注册中心地址-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!-- 任务类要注册 使用dubbo 扫包  -->
+    <dubbo:annotation package="com.itheima.health.job"/>
+
+    <!--注册任务类-->
+    <bean id="CleanImgJob" class="com.itheima.health.job.CleanImgJob"/>
+    <!--任务策略-->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    <!--任务触发时调用的bean对象-->
+    <property name="targetObject" ref="CleanImgJob"/>
+    <!--任务触发时调用的方法-->
+    <property name="targetMethod" value="CleanImg"/>
+    <!--是否并发任务-->
+    <property name="concurrent" value="false"/>
+    </bean>
+
+    <!--解发器-->
+    <bean id="trigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <!--七子表达式-->
+    <property name="cronExpression" value="0/30 * * * * ?"/>
+    <!--触发时调用的策略-->
+    <property name="jobDetail" ref="jobDetail"/>
+
+
+    </bean>
+
+    <!--调度容器-->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <property name="triggers">
+    <list>
+    <ref bean="trigger"/>
+    </list>
+    </property>
+    </bean>
+
+</beans>
